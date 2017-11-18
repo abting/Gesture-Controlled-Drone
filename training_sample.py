@@ -121,17 +121,36 @@ print("Y_test shape = " , Y_test.shape)
 #print("delay = ", delay)
 #
 #print("the best params are %s with a ascore of %0.2f" %(grid.best_params_, grid.best_score_))
-#the best params are {'C': 1.0, 'gamma': 1e-08} with a ascore of 0.97
+#>>the best params are {'C': 1.0, 'gamma': 1e-08} with a ascore of 0.97
 
 #Train the classifer on the pictures
-classifier = svm.SVC(C = 1.0 , gamma=1e-08)
+classifier = svm.SVC(probability = True, C = 1.0 , gamma=1e-08)
 classifier.fit(X_train, Y_train)
 
 ##Test the classifier
 predicted = classifier.predict(X_test)
+
+#print the confusion matrix
 print("Predicted shape = " , predicted.shape) 
-#
 print("Confusion matrix:\n%s" % metrics.confusion_matrix(Y_test, predicted))
+
+#i = 0
+#for item, label in zip(X_test, Y_test):
+#    result = classifier.predict([item])
+#    i += 1
+#    if result != label:
+#        print ("predicted label %s, but true label is %s for sample number %s" % (result, label,i))
+#        imgplot = plt.imshow(img_set[i])
+
+#print the probability of each sample
+print(classifier.classes_)
+for i in range(len(X_test)):
+    prob = classifier.predict_proba(X_test)[i]
+    print(prob)   
+  
+
+
+
 
 
     
