@@ -84,8 +84,8 @@ for file in files:
             img_set.append(img)
             Y_test.append(file)
 
-imgplot = plt.imshow(img_set[0])
-plt.show()
+#imgplot = plt.imshow(img_set[0])
+#plt.show()
 #resize the images using  cv2.INTER_LINEAR to reduce dimentionality from 640*480 (4:3 AR) to (200,200) image
 #t_img = cv2.resize(img_set[0], (200,200), cv2.INTER_LINEAR)
 #cv2.imshow("new size", t_img)
@@ -136,7 +136,7 @@ print("SVM Confusion matrix:\n%s" % metrics.confusion_matrix(Y_test, predicted))
 cap = cv2.VideoCapture(0)
 
 now = int(round(time.time() * 1000))
-while (cap.isOpened() & False):
+while (cap.isOpened() & True):
      ret, img = cap.read()
      gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
      current = int(round(time.time() * 1000))
@@ -149,13 +149,14 @@ while (cap.isOpened() & False):
 #         flatten the image 
 #         test  = gray.reshape(1,-1)
 #         test = test.reshape(1,-1)
-         test = cv2.resize(img, (200,200), cv2.INTER_LINEAR)
-         test = cv2.GaussianBlur(img,(5,5),0)
-         test = cv2.Canny(img,100,100)
+         test = cv2.resize(gray, (200,200), cv2.INTER_LINEAR)
+         test = cv2.GaussianBlur(test,(5,5),0)
+         test = cv2.Canny(test,100,100)
+         test = test.reshape(1,-1)
          #predict the gesture
          pre = classifier.predict(test)
          cv2.putText(img,"gesture: %s" %pre[0],(50,70), cv2.FONT_HERSHEY_COMPLEX, 1, (0,255,0))
-         cv2.imshow('Training feed',test)          
+         cv2.imshow('Training feed',img)          
      if cv2.waitKey(1) & 0xff ==ord('q'):
          break
 
