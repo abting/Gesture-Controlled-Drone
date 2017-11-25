@@ -84,7 +84,7 @@ for file in files:
             img_set.append(img)
             Y_test.append(file)
 
-#imgplot = plt.imshow(img_set[0])
+#imgplot = plt.imshow(img_set[27])
 #plt.show()
 #resize the images using  cv2.INTER_LINEAR to reduce dimentionality from 640*480 (4:3 AR) to (200,200) image
 #t_img = cv2.resize(img_set[0], (200,200), cv2.INTER_LINEAR)
@@ -121,22 +121,24 @@ print("Y_test shape = " , Y_test.shape)
 #clf = GridSearchCV(SVC(), param_grid = param_grid, cv=cv)
 #clf.fit(X_train, Y_train)
  
-classifier = svm.SVC(probability = True, C = 1.0 , gamma=1.1e-7)
+classifier = svm.SVC(probability = True, C = 1.0 , gamma=1.2e-7)
 classifier.fit(X_train, Y_train)
 #
 ##Test the classifier
 predicted = classifier.predict(X_test)
 ##pre = clf.predict(X_test)
 ##print the confusion matrix
+print("******************************************************************")
 print("SVM Predicted shape = " , predicted.shape) 
 print("SVM Confusion matrix:\n%s" % metrics.confusion_matrix(Y_test, predicted))
+print("SVM Mean Score :\n%s" % classifier.score(X_test, Y_test))
 ##print("MLP Confusion matrix:\n%s" % metrics.confusion_matrix(Y_test, pre))
 #
 #initialize camera
 cap = cv2.VideoCapture(0)
 
 now = int(round(time.time() * 1000))
-while (cap.isOpened() & True):
+while (cap.isOpened() & False):
      ret, img = cap.read()
      gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
      current = int(round(time.time() * 1000))

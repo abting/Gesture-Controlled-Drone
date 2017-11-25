@@ -5,7 +5,10 @@ import time
 img_path = 'Gesture_Images/'   #relative path to where the pictures should be saved
 number_of_gestures = 2         #number of gestures
 image_delay = 2.5              #(seconds)time to wait between taking images
-number_of_pictures = 1         #number of pictures to take PER gesture
+number_of_pictures = 30        #number of pictures to take PER gesture
+
+for i in range(1000):
+    i += 1
 
 #initialize camera
 cap = cv2.VideoCapture(0)
@@ -24,6 +27,7 @@ for j in range(number_of_gestures):
 files = os.listdir(img_path)
 files.remove('image_dataSet')
 print(files)
+
 #loop through the folders and get all the files
 j = 0
 for file in files:
@@ -34,7 +38,7 @@ for file in files:
         if not img.endswith('.jpg'):
             pics.remove(img)
             
-#    print("pics list: ", pics)        
+#   print("pics list: ", pics)        
     #get the last image name if the folder is NOT empty  
  
     if len(pics) != 0:
@@ -57,9 +61,9 @@ for file in files:
 
         current = int(round(time.time() * 1000))
         delay = current-now
-        cv2.putText(gray,"gesture: %d" %j,(50,70), cv2.FONT_HERSHEY_COMPLEX, 1, (0,255,0))
-        cv2.putText(gray,"image: %d" %(latest_image_name+1),(50,100), cv2.FONT_HERSHEY_COMPLEX, 1, (0,255,0))
-        cv2.putText(gray,"%d" %delay,(50,130), cv2.FONT_HERSHEY_COMPLEX, 1, (0,255,0))
+        cv2.putText(gray,"gesture: %d" %j,(50,70), cv2.FONT_HERSHEY_COMPLEX, 2, (0,255,0))
+        cv2.putText(gray,"image: %d" %(latest_image_name+1),(50,120), cv2.FONT_HERSHEY_COMPLEX, 2, (0,255,0))
+        cv2.putText(gray,"%d" %delay,(50,160), cv2.FONT_HERSHEY_COMPLEX, 2, (0,255,0))
         cv2.imshow('Train',gray)
         #print(delay)
         if(delay > image_delay*1000):
