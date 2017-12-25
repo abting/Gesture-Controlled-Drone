@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.svm import SVC
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn import tree
 import time
 from sklearn.neural_network import MLPClassifier
 
@@ -18,6 +20,8 @@ X_train = []
 Y_train = []
 X_test = []
 Y_test = []
+height = 200
+width  = 200
 
 path = 'Gesture_Images/image_dataSet/'
 files = os.listdir(path)
@@ -44,7 +48,7 @@ for file in files:
 #            print(join(c_path,f))
             img = cv2.imread(join(c_path,f))
             img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-            img = cv2.resize(img, (200,200), cv2.INTER_LINEAR)
+            img = cv2.resize(img, (height,width), cv2.INTER_LINEAR)
             img = cv2.GaussianBlur(img,(5,5),0)
             img = cv2.Canny(img,100,100)
 #            img = get_average(img)
@@ -76,7 +80,7 @@ for file in files:
             #get the everage of the column pixels to reduce dimentiality
 #            img = get_average(img)
             #resize the image
-            img = cv2.resize(img, (200,200), cv2.INTER_LINEAR)
+            img = cv2.resize(img, (height,width), cv2.INTER_LINEAR)
             #apply blur
             img = cv2.GaussianBlur(img,(5,5),0)
             #detect the edges
@@ -108,30 +112,82 @@ print("Y_test shape = " , Y_test.shape)
 #param_grid = dict(gamma = gamma_range, C = C_range)
 #cv = StratifiedShuffleSplit(n_splits = 5, test_size = 0.2, random_state=42)
 #grid = GridSearchCV(SVC(), param_grid = param_grid, cv=cv)
-#start =  time.time()
 #grid.fit(X_train, Y_train)
-#current = time.time()
-#delay = current - start
-#print("delay = ", delay)
 #print("the best params are %s with a ascore of %0.2f" %(grid.best_params_, grid.best_score_))
 #>>the best params are {'C': 1.0, 'gamma': 1e-08} with a ascore of 0.97
 #>>the best params are {'C': 1.0, 'gamma': 9.9999999999999995e-08} with a ascore of 0.97
+
 #Train the classifer on the pictures
 #clf = MLPClassifier(solver='lbfgs', alpha=1e-8, hidden_layer_sizes=(50, ), random_state=1)
 #clf = GridSearchCV(SVC(), param_grid = param_grid, cv=cv)
 #clf.fit(X_train, Y_train)
- 
+
+#SVM CLASSIFIER
 classifier = svm.SVC(probability = True, C = 1.0 , gamma=1.2e-7)
+start = time.time()
 classifier.fit(X_train, Y_train)
-#
-##Test the classifier
-predicted = classifier.predict(X_test)
-##pre = clf.predict(X_test)
+delay = time.time() - start
+print("SVM training time: %s" %delay)
+
+#KNN CLASIFIER
+neighbor = KNeighborsClassifier(n_neighbors = 5)
+start = time.time()
+neighbor.fit(X_train, Y_train)
+delay = time.time() - start
+print("KNN training time: %s" %delay)
+
+#DECISION TREE CLASSIFIER
+decision = tree.DecisionTreeClassifier()
+start = time.time()
+decision.fit(X_train, Y_train)
+delay = time.time() - start
+print("TREE training time: %s" %delay)
+
+#MULTI-LAYER PERCEPTRON CLASSIFIER
+mlp = MLPClassifier(solver='lbfgs', alpha=1.2e-7, hidden_layer_sizes=(25,), random_state=1)
+start = time.time()
+mlp.fit(X_train, Y_train)
+delay = time.time() - start
+print("MLP training time: %s" %delay)
+
+##Test the classifiers
+start = time.time()
+SVMpredicted  = classifier.predict(X_test)
+delay = time.time() - start
+print("SVM fitting time: %s" %delay)
+
+start = time.time()
+KNNpredicted  = neighbor.predict(X_test)
+delay = time.time() - start
+print("KNN fitting time: %s" %delay)
+
+start = time.time()
+TREEpredicted = decision.predict(X_test)
+delay = time.time() - start
+print("TREE fitting time: %s" %delay)
+
+start = time.time()
+MLPpredicted  = mlp.predict(X_test)
+delay = time.time() - start
+print("MLP fitting time: %s" %delay)
+
 ##print the confusion matrix
 print("******************************************************************")
-print("SVM Predicted shape = " , predicted.shape) 
-print("SVM Confusion matrix:\n%s" % metrics.confusion_matrix(Y_test, predicted))
-print("SVM Mean Score :\n%s" % classifier.score(X_test, Y_test))
+print("SVM Predicted shape = " , SVMpredicted.shape) 
+print("SVM Confusion matrix:\n%s" % metrics.confusion_matrix(Y_test, SVMpredicted))
+print("SVM Mean Score : %s" % classifier.score(X_test, Y_test))
+print("******************************************************************")
+print("KNN Predicted shape = " , KNNpredicted.shape) 
+print("KNN Confusion matrix:\n%s" % metrics.confusion_matrix(Y_test, KNNpredicted))
+print("KNN Mean Score : %s" % neighbor.score(X_test, Y_test))
+print("******************************************************************")
+print("TREE Predicted shape = " , TREEpredicted.shape) 
+print("TREE Confusion matrix:\n%s" % metrics.confusion_matrix(Y_test, TREEpredicted))
+print("TREE Mean Score : %s" % decision.score(X_test, Y_test))
+print("******************************************************************")
+print("MLP Predicted shape = " , MLPpredicted.shape) 
+print("MLP Confusion matrix:\n%s" % metrics.confusion_matrix(Y_test, MLPpredicted))
+print("MLP Mean Score : %s" % mlp.score(X_test, Y_test))
 ##print("MLP Confusion matrix:\n%s" % metrics.confusion_matrix(Y_test, pre))
 #
 #initialize camera
@@ -151,7 +207,7 @@ while (cap.isOpened() & False):
 #         flatten the image 
 #         test  = gray.reshape(1,-1)
 #         test = test.reshape(1,-1)
-         test = cv2.resize(gray, (200,200), cv2.INTER_LINEAR)
+         test = cv2.resize(gray, (height,width), cv2.INTER_LINEAR)
          test = cv2.GaussianBlur(test,(5,5),0)
          test = cv2.Canny(test,100,100)
          test = test.reshape(1,-1)
