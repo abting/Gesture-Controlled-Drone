@@ -25,7 +25,6 @@ width  = 200
 
 path = 'Gesture_Images/image_dataSet/'
 files = os.listdir(path)
-directory = 0
 
 def get_average(A):
     avg = 0
@@ -89,6 +88,8 @@ for file in files:
             Y_test.append(file)
 
 #imgplot = plt.imshow(img_set[27])
+#cv2.imshow('test', img_set[1])
+#cv2.waitKey(1)
 #plt.show()
 #resize the images using  cv2.INTER_LINEAR to reduce dimentionality from 640*480 (4:3 AR) to (200,200) image
 #t_img = cv2.resize(img_set[0], (200,200), cv2.INTER_LINEAR)
@@ -123,25 +124,25 @@ print("Y_test shape = " , Y_test.shape)
 #clf.fit(X_train, Y_train)
 
 #SVM CLASSIFIER
-classifier = svm.SVC(probability = True, C = 1.0 , gamma=1.2e-7)
-start = time.time()
-classifier.fit(X_train, Y_train)
-delay = time.time() - start
-print("SVM training time: %s" %delay)
+#classifier = svm.SVC(probability = True, C = 1.0 , gamma=1.2e-7)
+#start = time.time()
+#classifier.fit(X_train, Y_train)
+#delay = time.time() - start
+#print("SVM training time: %s" %delay)
 
 #KNN CLASIFIER
-neighbor = KNeighborsClassifier(n_neighbors = 5)
-start = time.time()
-neighbor.fit(X_train, Y_train)
-delay = time.time() - start
-print("KNN training time: %s" %delay)
+#neighbor = KNeighborsClassifier(n_neighbors = 5)
+#start = time.time()
+#neighbor.fit(X_train, Y_train)
+#delay = time.time() - start
+#print("KNN training time: %s" %delay)
 
 #DECISION TREE CLASSIFIER
-decision = tree.DecisionTreeClassifier()
-start = time.time()
-decision.fit(X_train, Y_train)
-delay = time.time() - start
-print("TREE training time: %s" %delay)
+#decision = tree.DecisionTreeClassifier()
+#start = time.time()
+#decision.fit(X_train, Y_train)
+#delay = time.time() - start
+#print("TREE training time: %s" %delay)
 
 #MULTI-LAYER PERCEPTRON CLASSIFIER
 mlp = MLPClassifier(solver='lbfgs', alpha=1.2e-7, hidden_layer_sizes=(25,), random_state=1)
@@ -151,20 +152,20 @@ delay = time.time() - start
 print("MLP training time: %s" %delay)
 
 ##Test the classifiers
-start = time.time()
-SVMpredicted  = classifier.predict(X_test)
-delay = time.time() - start
-print("SVM fitting time: %s" %delay)
-
-start = time.time()
-KNNpredicted  = neighbor.predict(X_test)
-delay = time.time() - start
-print("KNN fitting time: %s" %delay)
-
-start = time.time()
-TREEpredicted = decision.predict(X_test)
-delay = time.time() - start
-print("TREE fitting time: %s" %delay)
+#start = time.time()
+#SVMpredicted  = classifier.predict(X_test)
+#delay = time.time() - start
+#print("SVM fitting time: %s" %delay)
+#
+#start = time.time()
+#KNNpredicted  = neighbor.predict(X_test)
+#delay = time.time() - start
+#print("KNN fitting time: %s" %delay)
+#
+#start = time.time()
+#TREEpredicted = decision.predict(X_test)
+#delay = time.time() - start
+#print("TREE fitting time: %s" %delay)
 
 start = time.time()
 MLPpredicted  = mlp.predict(X_test)
@@ -172,19 +173,19 @@ delay = time.time() - start
 print("MLP fitting time: %s" %delay)
 
 ##print the confusion matrix
-print("******************************************************************")
-print("SVM Predicted shape = " , SVMpredicted.shape) 
-print("SVM Confusion matrix:\n%s" % metrics.confusion_matrix(Y_test, SVMpredicted))
-print("SVM Mean Score : %s" % classifier.score(X_test, Y_test))
-print("******************************************************************")
-print("KNN Predicted shape = " , KNNpredicted.shape) 
-print("KNN Confusion matrix:\n%s" % metrics.confusion_matrix(Y_test, KNNpredicted))
-print("KNN Mean Score : %s" % neighbor.score(X_test, Y_test))
-print("******************************************************************")
-print("TREE Predicted shape = " , TREEpredicted.shape) 
-print("TREE Confusion matrix:\n%s" % metrics.confusion_matrix(Y_test, TREEpredicted))
-print("TREE Mean Score : %s" % decision.score(X_test, Y_test))
-print("******************************************************************")
+#print("******************************************************************")
+#print("SVM Predicted shape = " , SVMpredicted.shape) 
+#print("SVM Confusion matrix:\n%s" % metrics.confusion_matrix(Y_test, SVMpredicted))
+#print("SVM Mean Score : %s" % classifier.score(X_test, Y_test))
+#print("******************************************************************")
+#print("KNN Predicted shape = " , KNNpredicted.shape) 
+#print("KNN Confusion matrix:\n%s" % metrics.confusion_matrix(Y_test, KNNpredicted))
+#print("KNN Mean Score : %s" % neighbor.score(X_test, Y_test))
+#print("******************************************************************")
+#print("TREE Predicted shape = " , TREEpredicted.shape) 
+#print("TREE Confusion matrix:\n%s" % metrics.confusion_matrix(Y_test, TREEpredicted))
+#print("TREE Mean Score : %s" % decision.score(X_test, Y_test))
+print("***************************************")
 print("MLP Predicted shape = " , MLPpredicted.shape) 
 print("MLP Confusion matrix:\n%s" % metrics.confusion_matrix(Y_test, MLPpredicted))
 print("MLP Mean Score : %s" % mlp.score(X_test, Y_test))
@@ -221,6 +222,7 @@ while (cap.isOpened() & False):
 cap.release()
 cv2.destroyAllWindows()
 
+
 #i = 0
 #for item, label in zip(X_test, Y_test):
 #    result = classifier.predict([item])
@@ -235,14 +237,83 @@ cv2.destroyAllWindows()
 #for i in range(len(X_test)):
 #    prob = classifier.predict_proba(X_test)[i]
 #    print(prob)   
-#  
 
-
-
-
-
+def load_training_set(path):
+    img_set = []
+    X_train = []
+    Y_train = []
     
-    
+    files = os.listdir(path)
+    #load up all the images
+    for file in files:
+        c_path = path+file
+        temp = os.listdir(c_path)
+        
+        for f in temp:
+            if( f.endswith('.jpg')): #only take the .jpg files
+    #            print(join(c_path,f))
+                img = cv2.imread(join(c_path,f))
+                img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+                img = cv2.resize(img, (height,width), cv2.INTER_LINEAR)
+                img = cv2.GaussianBlur(img,(5,5),0)
+                img = cv2.Canny(img,100,100)
+    #            img = get_average(img)
+                img_set.append(img)
+                Y_train.append(file)
+                
+    X_train = np.array(img_set)
+    n_sample = len(X_train) 
+    X_train = X_train.reshape((n_sample,-1))    
+    Y_train = np.array(Y_train) 
+    Y_train = Y_train.reshape((n_sample,))    
+    print("X_train shape = " , X_train.shape)  
+    print("Y_train shape = " , Y_train.shape)              
+    return X_train, Y_train
 
+def load_test_set(path):
+    img_set = []
+    X_test = []
+    Y_test = []
+    files = os.listdir(path)
+    files.remove('image_dataSet')
+    for f in temp:
+        if( f.endswith('.jpg')): #only take the .jpg files
+#            print(join(c_path,f))
+            img = cv2.imread(join(c_path,f))
+            img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+            #get the everage of the column pixels to reduce dimentiality
+#            img = get_average(img)
+            #resize the image
+            img = cv2.resize(img, (height,width), cv2.INTER_LINEAR)
+            #apply blur
+            img = cv2.GaussianBlur(img,(5,5),0)
+            #detect the edges
+            img = cv2.Canny(img,100,100)
+            img_set.append(img)
+            Y_test.append(file)
+            
+    X_test = np.array(img_set)
+    n_sample = len(X_test) 
+    X_test = X_test.reshape((n_sample,-1)) 
+    Y_test = np.array(Y_test) 
+    Y_test = Y_test.reshape((n_sample,)) 
+    print("X_test shape = " , X_test.shape)  
+    print("Y_test shape = " , Y_test.shape) 
+    return X_test,Y_test
 
+def train_model(path, alpha = 1.2e-7, layer_size = (25,)):
+    X_train,Y_train = load_training_set(path)
+    mlp = MLPClassifier(solver='lbfgs', alpha=1.2e-7, hidden_layer_sizes=(25,), random_state=1)
+    start = time.time()
+    mlp.fit(X_train, Y_train)
+    delay = time.time() - start
+    print("MLP training time: %s" %delay)
+    return mlp
 
+def predict_image(clf, gray_img):
+     test = cv2.resize(gray_img, (height,width), cv2.INTER_LINEAR)
+     test = cv2.GaussianBlur(test,(5,5),0)
+     test = cv2.Canny(test,100,100)
+     test = test.reshape(1,-1)
+     pre = clf.predict(test)
+     return pre[0]
