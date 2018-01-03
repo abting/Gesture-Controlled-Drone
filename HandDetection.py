@@ -34,8 +34,8 @@ def TrainTree(data, labels):
 
 def ApplyToImage(img, clf):
 
-#    img = cv2.imread(path)
-
+    img = cv2.GaussianBlur(img,(1,1),0)
+    
     data= np.reshape(img,(img.shape[0]*img.shape[1],3))
 
     data= BGR2HSV(data)
@@ -131,6 +131,30 @@ def calculate_contours(img, erosion_size = 0 ):
     
     return contours,img
 
+def hard_code_skin_detection(frame):
+    frame = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV);
+    frame = cv2.GaussianBlur(frame,(7,7), 1, 1);
+
+    for r in range(frame.shape[0]):
+        for c in range(frame.shape[1]):
+    #        #0<H<0.25  -   0.15<S<0.9    -    0.2<V<0.95
+            if( (frame[r,c,0]>5) and (frame[r,c,0] < 17) and (frame[r,c,1]>38) and (frame[r,c,1]<250) and (frame[r,c,2]>51) and (frame[r,c,2]<242) ):
+                pass
+            else:
+                for k in range(0,3):
+                    frame[r,c,k] = 0
+             
+    frame      = cv2.cvtColor(frame, cv2.COLOR_HSV2BGR)
+    frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    ret,frame_gray = cv2.threshold(frame_gray, 60, 255, cv2.THRESH_BINARY)
+    
+    frame_gray = cv2.morphologyEx(frame_gray, cv2.MORPH_ERODE, (3,3,1))
+    frame_gray = cv2.morphologyEx(frame_gray, cv2.MORPH_OPEN,  (7,7,1))
+    frame_gray = cv2.morphologyEx(frame_gray, cv2.MORPH_CLOSE, (9,9,1))
+    
+    frame_gray = cv2.medianBlur(frame_gray, 3)
+    
+    return frame_gray
 
 #load cascade classifier training file
 haar_face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_alt.xml')
@@ -194,11 +218,11 @@ cap = cv2.VideoCapture(0)
 
 while(True):
     
-    ret, img = cap.read()
-    org      = img.copy()
-#    org      = cv2.imread("test3.jpg")
-    skin_img = ApplyToImage(org, clf)
-    
+#    ret, img = cap.read()
+#    org      = img.copy()
+    org      = cv2.imread("1.png")
+    skin_img = ApplyToImage(org, clf) 
+#    skin_img = hard_code_skin_detection(org)
 #    erosion_size = cv2.getTrackbarPos('dilataion','image')
 #    threshold = cv2.getTrackbarPos('threshold','image')
 #    ksize = cv2.getTrackbarPos('medianBlur','image')
@@ -218,14 +242,15 @@ while(True):
             cv2.drawContours(org,[hull],0,(255,0,0),2)  #blue
 
     cv2.imshow('image' ,org)
-#    cv2.imshow('res' ,res)
+    cv2.imshow('skin_img' ,skin_img)
 #    cv2.imshow('backprojection',res)
 #    cv2.imshow('dilated_img',dilated_img)
     
     k = cv2.waitKey(1)
     if k == ord('q'):
         break
-
+    
+cap.release()
 cv2.destroyAllWindows()
 
     
