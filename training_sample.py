@@ -2,16 +2,17 @@ import numpy as np
 from sklearn import svm, metrics
 import os
 import cv2
-from os import listdir
 from os.path import join
 import matplotlib.pyplot as plt
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.svm import SVC
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn import tree
 import time
 from sklearn.neural_network import MLPClassifier
+from sklearn.preprocessing import StandardScaler  
+from sklearn.metrics import confusion_matrix
+from sklearn.preprocessing import MinMaxScaler
+import itertools
 
 n_gestures = 2
 n_images = 10
@@ -20,39 +21,27 @@ X_train = []
 Y_train = []
 X_test = []
 Y_test = []
-height = 200
-width  = 200
+height = 70
+width  = 70
 
 path = 'Gesture_Images/image_dataSet/'
 files = os.listdir(path)
-directory = 0
 
-def get_average(A):
-    avg = 0
-    rows = len(A)
-    columns = len(A[0])
-    temp = np.zeros((rows, 1))
-    for row in range(rows):
-        for column in range(columns):
-            avg += A[row][column]
-        temp[row][0] = avg/columns
-    return temp
-  
 #load up all the images
 for file in files:
     c_path = path+file
     temp = os.listdir(c_path)
     
     for f in temp:
-        if( f.endswith('.jpg')): #only take the .jpg files
-#            print(join(c_path,f))
+        if( f.endswith('.jpg') or f.endswith('.bmp') ): #only take the .jpg files
             img = cv2.imread(join(c_path,f))
             img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
             img = cv2.resize(img, (height,width), cv2.INTER_LINEAR)
-            img = cv2.GaussianBlur(img,(5,5),0)
-            img = cv2.Canny(img,100,100)
-#            img = get_average(img)
+#            img = cv2.Canny(img,100,100)           
+            flip=cv2.flip(img,1)    
             img_set.append(img)
+            img_set.append(flip)
+            Y_train.append(file)
             Y_train.append(file)
 
 X_train = np.array(img_set)
@@ -73,31 +62,19 @@ for file in files:
     temp = os.listdir(c_path)
     
     for f in temp:
-        if( f.endswith('.jpg')): #only take the .jpg files
-#            print(join(c_path,f))
+        if( f.endswith('.jpg') or f.endswith('.bmp')  ): #only take the .jpg files
+
             img = cv2.imread(join(c_path,f))
             img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-            #get the everage of the column pixels to reduce dimentiality
-#            img = get_average(img)
-            #resize the image
             img = cv2.resize(img, (height,width), cv2.INTER_LINEAR)
-            #apply blur
-            img = cv2.GaussianBlur(img,(5,5),0)
-            #detect the edges
-            img = cv2.Canny(img,100,100)
+#            img = cv2.Canny(img,100,100)           
+            flip=cv2.flip(img,1)   
             img_set.append(img)
+            img_set.append(flip)
+            Y_test.append(file)
             Y_test.append(file)
 
-#imgplot = plt.imshow(img_set[27])
-#plt.show()
-#resize the images using  cv2.INTER_LINEAR to reduce dimentionality from 640*480 (4:3 AR) to (200,200) image
-#t_img = cv2.resize(img_set[0], (200,200), cv2.INTER_LINEAR)
-#cv2.imshow("new size", t_img)
-#cv2.waitKey()
-
-#t_img = cv2.Canny(img_set[0],100,100)
-#cv2.imshow("edges", t_img)
-#cv2.waitKey()
+#plt.imshow(img_set[1])
 
 X_test = np.array(img_set)
 n_sample = len(X_test) 
@@ -106,14 +83,22 @@ Y_test = np.array(Y_test)
 Y_test = Y_test.reshape((n_sample,)) 
 print("X_test shape = " , X_test.shape)  
 print("Y_test shape = " , Y_test.shape)      
+print("******************************************************************")
 
 #C_range = np.logspace(-2,10,13)
 #gamma_range = np.logspace(-9,3,13)
-#param_grid = dict(gamma = gamma_range, C = C_range)
+#print(len(gamma_range))
+#param_grid = dict(gamma = gamma_range)
 #cv = StratifiedShuffleSplit(n_splits = 5, test_size = 0.2, random_state=42)
-#grid = GridSearchCV(SVC(), param_grid = param_grid, cv=cv)
+#grid = GridSearchCV(MLPClassifier(), param_grid = param_grid, cv=cv)
 #grid.fit(X_train, Y_train)
-#print("the best params are %s with a ascore of %0.2f" %(grid.best_params_, grid.best_score_))
+
+#params = {'hidden_layer_sizes': [(128,10,10)], 'alpha': gamma_range}
+#mlp = MLPClassifier(solver='lbfgs', verbose=10, learning_rate='adaptive')
+#clf = GridSearchCV(mlp, params, verbose=10, n_jobs=-1, cv=5)
+#clf.fit(X_train, Y_train)
+#        
+#print("the best params are %s with a ascore of %0.2f" %(clf.best_params_, clf.best_score_))
 #>>the best params are {'C': 1.0, 'gamma': 1e-08} with a ascore of 0.97
 #>>the best params are {'C': 1.0, 'gamma': 9.9999999999999995e-08} with a ascore of 0.97
 
@@ -123,48 +108,30 @@ print("Y_test shape = " , Y_test.shape)
 #clf.fit(X_train, Y_train)
 
 #SVM CLASSIFIER
-classifier = svm.SVC(probability = True, C = 1.0 , gamma=1.2e-7)
-start = time.time()
-classifier.fit(X_train, Y_train)
-delay = time.time() - start
-print("SVM training time: %s" %delay)
-
-#KNN CLASIFIER
-neighbor = KNeighborsClassifier(n_neighbors = 5)
-start = time.time()
-neighbor.fit(X_train, Y_train)
-delay = time.time() - start
-print("KNN training time: %s" %delay)
-
-#DECISION TREE CLASSIFIER
-decision = tree.DecisionTreeClassifier()
-start = time.time()
-decision.fit(X_train, Y_train)
-delay = time.time() - start
-print("TREE training time: %s" %delay)
+#classifier = svm.SVC(probability = True, C = 1.0 , gamma=1.2e-9)
+#start = time.time()
+#classifier.fit(X_train, Y_train)
+#delay = time.time() - start
+#print("SVM training time: %s" %delay)
 
 #MULTI-LAYER PERCEPTRON CLASSIFIER
-mlp = MLPClassifier(solver='lbfgs', alpha=1.2e-7, hidden_layer_sizes=(25,), random_state=1)
+scaler = StandardScaler()
+scaler.fit(X_train) 
+X_train = scaler.transform(X_train)
+X_test  = scaler.transform(X_test)  
+
+mlp = MLPClassifier(activation='relu', solver='sgd', learning_rate_init = 0.001, alpha=0.008, max_iter=2000, hidden_layer_sizes=(200,200,200) , random_state=1)
 start = time.time()
 mlp.fit(X_train, Y_train)
 delay = time.time() - start
 print("MLP training time: %s" %delay)
 
-##Test the classifiers
-start = time.time()
-SVMpredicted  = classifier.predict(X_test)
-delay = time.time() - start
-print("SVM fitting time: %s" %delay)
-
-start = time.time()
-KNNpredicted  = neighbor.predict(X_test)
-delay = time.time() - start
-print("KNN fitting time: %s" %delay)
-
-start = time.time()
-TREEpredicted = decision.predict(X_test)
-delay = time.time() - start
-print("TREE fitting time: %s" %delay)
+#---------------------------------------------------------------------------------
+#Test the classifiers
+#start = time.time()
+#SVMpredicted  = classifier.predict(X_test)
+#delay = time.time() - start
+#print("SVM fitting time: %s" %delay)
 
 start = time.time()
 MLPpredicted  = mlp.predict(X_test)
@@ -172,77 +139,49 @@ delay = time.time() - start
 print("MLP fitting time: %s" %delay)
 
 ##print the confusion matrix
-print("******************************************************************")
-print("SVM Predicted shape = " , SVMpredicted.shape) 
-print("SVM Confusion matrix:\n%s" % metrics.confusion_matrix(Y_test, SVMpredicted))
-print("SVM Mean Score : %s" % classifier.score(X_test, Y_test))
-print("******************************************************************")
-print("KNN Predicted shape = " , KNNpredicted.shape) 
-print("KNN Confusion matrix:\n%s" % metrics.confusion_matrix(Y_test, KNNpredicted))
-print("KNN Mean Score : %s" % neighbor.score(X_test, Y_test))
-print("******************************************************************")
-print("TREE Predicted shape = " , TREEpredicted.shape) 
-print("TREE Confusion matrix:\n%s" % metrics.confusion_matrix(Y_test, TREEpredicted))
-print("TREE Mean Score : %s" % decision.score(X_test, Y_test))
-print("******************************************************************")
+#print("******************************************************************")
+#print("SVM Predicted shape = " , SVMpredicted.shape) 
+#print("SVM Confusion matrix:\n%s" % metrics.confusion_matrix(Y_test, SVMpredicted))
+#print("SVM Mean Score : %s" % classifier.score(X_test, Y_test))
+print("***************************************")
 print("MLP Predicted shape = " , MLPpredicted.shape) 
 print("MLP Confusion matrix:\n%s" % metrics.confusion_matrix(Y_test, MLPpredicted))
 print("MLP Mean Score : %s" % mlp.score(X_test, Y_test))
-##print("MLP Confusion matrix:\n%s" % metrics.confusion_matrix(Y_test, pre))
-#
-#initialize camera
-cap = cv2.VideoCapture(0)
+print(mlp.hidden_layer_sizes)
+#print("MLP Confusion matrix:\n%s" % metrics.confusion_matrix(Y_test, pre))
 
-now = int(round(time.time() * 1000))
-while (cap.isOpened() & False):
-     ret, img = cap.read()
-     gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-     current = int(round(time.time() * 1000))
-     #take a guess every 200 ms
-     if(current - now > 200 ):
-#         print(current - now)
-         now = int(round(time.time() * 1000))
-#         #get the everage of the column pixels to reduce dimentiality
-#         test = get_average(gray)
-#         flatten the image 
-#         test  = gray.reshape(1,-1)
-#         test = test.reshape(1,-1)
-         test = cv2.resize(gray, (height,width), cv2.INTER_LINEAR)
-         test = cv2.GaussianBlur(test,(5,5),0)
-         test = cv2.Canny(test,100,100)
-         test = test.reshape(1,-1)
-         #predict the gesture
-         pre = classifier.predict(test)
-         cv2.putText(img,"gesture: %s" %pre[0],(50,70), cv2.FONT_HERSHEY_COMPLEX, 1, (0,255,0))
-         cv2.imshow('Training feed',img)          
-     if cv2.waitKey(1) & 0xff ==ord('q'):
-         break
+def plot_confusion_matrix(cm, classes,normalize=False,title='Confusion matrix',cmap=plt.cm.Blues):
 
-cap.release()
-cv2.destroyAllWindows()
+    if normalize:
+        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        print("Normalized confusion matrix")
+    else:
+        print('Confusion matrix, without normalization')
 
-#i = 0
-#for item, label in zip(X_test, Y_test):
-#    result = classifier.predict([item])
-#    i += 1
-#    if result != label:
-#        print ("predicted label %s, but true label is %s for sample number %s" % (result, label,i))
-#        imgplot = plt.imshow(img_set[i])
+    print(cm)
 
-#print the probability of each sample
-#print(classifier.classes_)
-#
-#for i in range(len(X_test)):
-#    prob = classifier.predict_proba(X_test)[i]
-#    print(prob)   
-#  
+    plt.imshow(cm, interpolation='nearest', cmap=cmap)
+    plt.title(title)
+    plt.colorbar()
+    tick_marks = np.arange(len(classes))
+    plt.xticks(tick_marks, classes, rotation=45)
+    plt.yticks(tick_marks, classes)
 
+    fmt = '.2f' if normalize else 'd'
+    thresh = cm.max() / 2.
+    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+        plt.text(j, i, format(cm[i, j], fmt),
+                 horizontalalignment="center",
+                 color="white" if cm[i, j] > thresh else "black")
 
-
-
-
+    plt.tight_layout()
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
     
     
-
-
-
+    
+cnf_matrix = confusion_matrix(Y_test, MLPpredicted)
+np.set_printoptions(precision=2)
+plot_confusion_matrix(cnf_matrix, classes=('0','1','2'),title='Confusion matrix, without normalization')    
+    
+    
