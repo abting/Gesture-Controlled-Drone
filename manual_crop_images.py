@@ -43,7 +43,7 @@ done = False
 
 for file in os.listdir(source):
    if(done != True) :
-    if file.endswith(".jpg"):
+    if file.endswith(".jpg") or file.endswith(".bmp"):
         
         img_path = os.path.join(source, file)
         print("current image: " + img_path)

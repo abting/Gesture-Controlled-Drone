@@ -4,7 +4,7 @@ import os
 import cv2
 from os.path import join
 import matplotlib.pyplot as plt
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.svm import SVC
 import time
@@ -33,11 +33,10 @@ for file in files:
     temp = os.listdir(c_path)
     
     for f in temp:
-        if( f.endswith('.jpg') or f.endswith('.bmp') ): #only take the .jpg files
+        if( f.endswith('.jpg') or f.endswith('.bmp') ): 
             img = cv2.imread(join(c_path,f))
             img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-            img = cv2.resize(img, (height,width), cv2.INTER_LINEAR)
-#            img = cv2.Canny(img,100,100)           
+            img = cv2.resize(img, (height,width), cv2.INTER_LINEAR)          
             flip=cv2.flip(img,1)    
             img_set.append(img)
             img_set.append(flip)
@@ -62,12 +61,10 @@ for file in files:
     temp = os.listdir(c_path)
     
     for f in temp:
-        if( f.endswith('.jpg') or f.endswith('.bmp')  ): #only take the .jpg files
-
+        if( f.endswith('.jpg') or f.endswith('.bmp')  ):
             img = cv2.imread(join(c_path,f))
             img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-            img = cv2.resize(img, (height,width), cv2.INTER_LINEAR)
-#            img = cv2.Canny(img,100,100)           
+            img = cv2.resize(img, (height,width), cv2.INTER_LINEAR)          
             flip=cv2.flip(img,1)   
             img_set.append(img)
             img_set.append(flip)
@@ -85,49 +82,41 @@ print("X_test shape = " , X_test.shape)
 print("Y_test shape = " , Y_test.shape)      
 print("******************************************************************")
 
-#C_range = np.logspace(-2,10,13)
-#gamma_range = np.logspace(-9,3,13)
-#print(len(gamma_range))
-#param_grid = dict(gamma = gamma_range)
-#cv = StratifiedShuffleSplit(n_splits = 5, test_size = 0.2, random_state=42)
-#grid = GridSearchCV(MLPClassifier(), param_grid = param_grid, cv=cv)
-#grid.fit(X_train, Y_train)
+scaler = StandardScaler()
+scaler.fit(X_train) 
+X_train = scaler.transform(X_train)
+X_test  = scaler.transform(X_test)  
 
-#params = {'hidden_layer_sizes': [(128,10,10)], 'alpha': gamma_range}
-#mlp = MLPClassifier(solver='lbfgs', verbose=10, learning_rate='adaptive')
-#clf = GridSearchCV(mlp, params, verbose=10, n_jobs=-1, cv=5)
+#alpha_range = np.logspace(-4,10,13)
+#params = {'alpha': alpha_range}
+#mlp = MLPClassifier(activation='relu', solver='sgd', learning_rate_init = 0.03, max_iter=500, 
+#                        hidden_layer_sizes=(320,) , random_state=1, verbose= True, learning_rate = 'adaptive', tol=1e-4)
+
+#clf = GridSearchCV(mlp, params, verbose=10, n_jobs=1, cv=5)
 #clf.fit(X_train, Y_train)
-#        
 #print("the best params are %s with a ascore of %0.2f" %(clf.best_params_, clf.best_score_))
-#>>the best params are {'C': 1.0, 'gamma': 1e-08} with a ascore of 0.97
-#>>the best params are {'C': 1.0, 'gamma': 9.9999999999999995e-08} with a ascore of 0.97
 
-#Train the classifer on the pictures
-#clf = MLPClassifier(solver='lbfgs', alpha=1e-8, hidden_layer_sizes=(50, ), random_state=1)
-#clf = GridSearchCV(SVC(), param_grid = param_grid, cv=cv)
-#clf.fit(X_train, Y_train)
+#random_search = RandomizedSearchCV(mlp, param_distributions=params, n_iter=13, verbose=10, n_jobs=1)
+#random_search.fit(X_train, Y_train)
+#print("the best params are %s with a ascore of %0.2f" %(random_search.best_params_, random_search.best_score_))
 
 #SVM CLASSIFIER
-#classifier = svm.SVC(probability = True, C = 1.0 , gamma=1.2e-9)
+#classifier = svm.SVC(probability = True, C = 1.0 , gamma=0.008)
 #start = time.time()
 #classifier.fit(X_train, Y_train)
 #delay = time.time() - start
 #print("SVM training time: %s" %delay)
 
 #MULTI-LAYER PERCEPTRON CLASSIFIER
-scaler = StandardScaler()
-scaler.fit(X_train) 
-X_train = scaler.transform(X_train)
-X_test  = scaler.transform(X_test)  
-
-mlp = MLPClassifier(activation='relu', solver='sgd', learning_rate_init = 0.001, alpha=0.008, max_iter=2000, hidden_layer_sizes=(200,200,200) , random_state=1)
+mlp = MLPClassifier(activation='relu', solver='sgd', learning_rate_init = 0.03, alpha=0.008, max_iter=500, 
+                        hidden_layer_sizes=(320,) , random_state=1, verbose= True, learning_rate = 'adaptive', tol=1e-4)
 start = time.time()
 mlp.fit(X_train, Y_train)
 delay = time.time() - start
 print("MLP training time: %s" %delay)
 
-#---------------------------------------------------------------------------------
 #Test the classifiers
+#---------------------------------------------------------------------------------
 #start = time.time()
 #SVMpredicted  = classifier.predict(X_test)
 #delay = time.time() - start
@@ -137,18 +126,17 @@ start = time.time()
 MLPpredicted  = mlp.predict(X_test)
 delay = time.time() - start
 print("MLP fitting time: %s" %delay)
+print("MLP training Score : %s" % mlp.score(X_train, Y_train))
 
-##print the confusion matrix
 #print("******************************************************************")
 #print("SVM Predicted shape = " , SVMpredicted.shape) 
-#print("SVM Confusion matrix:\n%s" % metrics.confusion_matrix(Y_test, SVMpredicted))
 #print("SVM Mean Score : %s" % classifier.score(X_test, Y_test))
+#print("SVM training Score : %s" % classifier.score(X_test, Y_test))
 print("***************************************")
 print("MLP Predicted shape = " , MLPpredicted.shape) 
-print("MLP Confusion matrix:\n%s" % metrics.confusion_matrix(Y_test, MLPpredicted))
-print("MLP Mean Score : %s" % mlp.score(X_test, Y_test))
+print("MLP fitting Score : %s" % mlp.score(X_test, Y_test))
 print(mlp.hidden_layer_sizes)
-#print("MLP Confusion matrix:\n%s" % metrics.confusion_matrix(Y_test, pre))
+
 
 def plot_confusion_matrix(cm, classes,normalize=False,title='Confusion matrix',cmap=plt.cm.Blues):
 
@@ -178,8 +166,7 @@ def plot_confusion_matrix(cm, classes,normalize=False,title='Confusion matrix',c
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
     
-    
-    
+       
 cnf_matrix = confusion_matrix(Y_test, MLPpredicted)
 np.set_printoptions(precision=2)
 plot_confusion_matrix(cnf_matrix, classes=('0','1','2'),title='Confusion matrix, without normalization')    

@@ -4,6 +4,7 @@ import numpy as np
 from sklearn import tree
 import PIL.Image
 from sklearn.cross_validation import train_test_split
+from hsv_segmenter import HSVSegmenter
 #from training_sample import train_model,predict_image
 
 def ReadData():
@@ -35,14 +36,13 @@ def TrainTree(data, labels):
 
 def ApplyToImage(img, clf):
 
-    
     img = cv2.GaussianBlur(img,(3,3),0)
 
     data= np.reshape(img,(img.shape[0]*img.shape[1],3))
 
-    data = BGR2HSV(data)
+    data= BGR2HSV(data)
 
-    predictedLabels = clf.predict(data)
+    predictedLabels= clf.predict(data)
 
     imgLabels= np.reshape(predictedLabels,(img.shape[0],img.shape[1],1))
     
@@ -69,6 +69,16 @@ def detect_faces(f_cascade, colored_img, scaleFactor = 1.1):
  faces = f_cascade.detectMultiScale(gray, scaleFactor=scaleFactor, minNeighbors=5); 
  
  if len(faces) != 0:
+     #go over list of faces and draw them as rectangles on original colored img
+#     for (x, y, w, h) in faces:
+#          cv2.rectangle(img_copy, (x, y), (x+w, y+h), (0, 255, 0), 2)  
+#          
+#     #detected face
+#     crop_img = img_copy[y+2:y+w, x+2:x+h]
+#     
+#     #find the forhead
+#     forhead = img_copy[int(y+h/20):int(y+h/5) , x+5:x+int(w/1.5)]
+
      return faces
  else:
      empty = []
@@ -150,54 +160,60 @@ def hard_code_skin_detection(frame):
 haar_face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_alt.xml')
 
 #train the skin classifier
-data, labels= ReadData()
-clf = TrainTree(data, labels)
+#data, labels= ReadData()
+#clf = TrainTree(data, labels)
 
-#train the gesture classifier
-#mlp = train_model('Gesture_Images/image_dataSet/')
+#path = 'Gesture_Images/image_dataSet/'
+#mlp = train_model(path)
+
+h  = HSVSegmenter()
 
 #interface
 def nothing(x):
     pass
 
 cv2.namedWindow('image', cv2.WINDOW_NORMAL)
-cv2.namedWindow('res', cv2.WINDOW_NORMAL)
-cv2.resizeWindow('image', 600, 600)
-cv2.resizeWindow('res'  , 600, 600)
-
-cv2.createTrackbar('min_area'     ,'image',1500,50000   ,nothing)
-cv2.createTrackbar('max_area'     ,'image',150000,150000,nothing)
+cv2.createTrackbar('min_area'     ,'image',2000  ,150000   ,nothing)
+cv2.createTrackbar('max_area'     ,'image',150000,150000   ,nothing)
 
 cap = cv2.VideoCapture(0)
-#cap.set(cv2.CAP_PROP_FRAME_HEIGHT , 1080)
-#cap.set(cv2.CAP_PROP_FRAME_WIDTH , 1920)
 
+#for video recording
+#fourcc = cv2.VideoWriter_fourcc(*'XVID')
+#out_frame = cv2.VideoWriter('frame.avi',fourcc, 10.0, (640,480))
+#out_mask  = cv2.VideoWriter('mask.avi',fourcc, 10.0, (640,480), isColor = False)
+#
+
+                             
 while(cap.isOpened() and 1):
     
-    ret, img = cap.read()  
-    org      = img.copy()
-#    org2     = img.copy()
+    ret, img = cap.read()
+    copy     = img.copy()
     
-    face_only = detect_faces(haar_face_cascade,img)
-    if(len(face_only) != 0):
-        #set face to black
-        for (x, y, w, h) in face_only:
-          cv2.rectangle(org, (x-20, y-20), (x+w, y+h+50), (0, 0, 0),-1)      
-    
-    skin_img = ApplyToImage(org, clf)
+#    face_only = detect_faces(haar_face_cascade,copy)
+#    if(len(face_only) != 0):
+#        set face to black
+#        for (x, y, w, h) in face_only:
+#          cv2.rectangle(copy, (x, y), (x+w, y+h), (0, 0, 0),-1) 
 
-    min_hand_threshold = cv2.getTrackbarPos('min_area','image')
-    max_hand_threshold = cv2.getTrackbarPos('max_area','image')
+
+#    skin_img2 = ApplyToImage(org, clf)
     
+    skin_img = h.get_mask(copy)
+    
+#    skin_img = cv2.dilate(skin_img,(3,3),iterations = 1)
+    
+    min_hand_threshold = cv2.getTrackbarPos('min_area','image') + 1
+    max_hand_threshold = cv2.getTrackbarPos('max_area','image') + 1
 
     contours,dilated_image = calculate_contours(skin_img)
-       
+           
     for cnt in contours:
         hull = cv2.convexHull(cnt)       
         area = cv2.contourArea(hull)
         if( area > min_hand_threshold and area < max_hand_threshold ):
-            cv2.drawContours(img,[cnt] ,0,(0,0,255),2)   #red
-            cv2.drawContours(img,[hull],0,(255,0,0),2)   #blue
+            cv2.drawContours(copy,[cnt] ,0,(0,0,255),2)   #red
+            cv2.drawContours(copy,[hull],0,(255,0,0),2)   #blue
             M = cv2.moments(cnt)
             cX = int(M["m10"] / M["m00"])
             cY = int(M["m01"] / M["m00"])
@@ -208,27 +224,68 @@ while(cap.isOpened() and 1):
             x, y, width, height = cv2.boundingRect(cnt)
             roi = skin_img[y:y+height, x:x+width]
             cv2.rectangle(img, (x,y), (x+width,y+height), (255,255, 0), 2)
-            #cv2.imshow('cnt' ,org2[y:y+height, x:x+width])
             
-            #prepare the image for the gesture classifier
-            #gest = cv2.resize(org2, (200,200), cv2.INTER_LINEAR)
+            
+#            predict the image 
+#            number = predict_image(mlp,roi)
+#            cv2.putText(img,"%s" %number,(cX,cY), cv2.FONT_HERSHEY_COMPLEX, 1, (0,255,0))
+            
+#    out_frame.write(img)
+#    out_mask.write(skin_img)
 
-            
-    w = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-    h = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
-    
-    cv2.putText(img,"W: %d" %w,(20,50) , cv2.FONT_HERSHEY_COMPLEX, 1.5, (0,0,0)) 
-    cv2.putText(img,"H: %d" %h,(20,100), cv2.FONT_HERSHEY_COMPLEX, 1.5, (0,0,0)) 
-                    
     cv2.imshow('image' ,img)
     cv2.imshow('res'   ,skin_img)
     
     k = cv2.waitKey(1)
     if k == ord('q'):
         break
-    
+#    
 cap.release()    
+#out_frame.release()
+#out_mask.release()
 cv2.destroyAllWindows()
+
+
+#apply the classifier to the test image to get the skin regions
+#org      = cv2.imread("test3.jpg")
+#skin_img = ApplyToImage(org, clf)
+
+#skin_img = np.reshape(skin_img,(skin_img.shape[0],skin_img.shape[1],3))
+#print(skin_img.shape)
+#test = cv2.imread("result_HSV.png")
+
+#skin_img = Image.fromarray(skin_img, 'RGB')
+#print(skin_img.shape)
+#skin_img = cv2.cvtColor(skin_img, cv2.COLOR_BGR2GRAY) 
+#print(skin_img.shape)
+#call our function to detect faces 
+#faces_detected_img,roi = detect_faces(haar_face_cascade, test)  
+
+#calculate the histogram and apply backprojection with our function
+#target,thresh,res = backproject(roi,test)
+
+#plt.imshow(thresh)
+
+##calculate the contours
+#contours,dilated_image = calculate_contours(skin_img)
+##
+####threshold at ~1m ~5m
+#max_hand_threshold  = 150000    #biggest area
+#min_hand_threshold  = 1000     #smallest area
+##
+###draw the contours and convexHull
+#for cnt in contours:
+#    hull = cv2.convexHull(cnt)
+#    area = cv2.contourArea(hull)
+#    if( area > min_hand_threshold and area < max_hand_threshold ):
+##        cv2.drawContours(org,[cnt],0,(0,0,255),2)   #red
+#        cv2.drawContours(org,[hull],0,(255,0,0),2)  #blue
+        
+#plt.imshow(skin_img)
+#plt.imshow(convertToRGB(org))
+
+
+
 
 
 
