@@ -1,86 +1,57 @@
 import numpy as np
 from sklearn import svm, metrics
+from sklearn.svm import SVC
+from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, StratifiedShuffleSplit
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.model_selection import train_test_split
+from sklearn.neural_network import MLPClassifier
+from sklearn.metrics import confusion_matrix
+import matplotlib.pyplot as plt
+from os.path import join
+import itertools
+import time
 import os
 import cv2
-from os.path import join
-import matplotlib.pyplot as plt
-from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
-from sklearn.model_selection import StratifiedShuffleSplit
-from sklearn.svm import SVC
-import time
-from sklearn.neural_network import MLPClassifier
-from sklearn.preprocessing import StandardScaler  
-from sklearn.metrics import confusion_matrix
-from sklearn.preprocessing import MinMaxScaler
-import itertools
+import pickle
 
-n_gestures = 2
-n_images = 10
-img_set = []
-X_train = []
-Y_train = []
-X_test = []
-Y_test = []
-height = 70
-width  = 70
-
-path = 'Gesture_Images/image_dataSet/'
-files = os.listdir(path)
-
-#load up all the images
-for file in files:
-    c_path = path+file
-    temp = os.listdir(c_path)
-    
-    for f in temp:
-        if( f.endswith('.jpg') or f.endswith('.bmp') ): 
-            img = cv2.imread(join(c_path,f))
-            img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-            img = cv2.resize(img, (height,width), cv2.INTER_LINEAR)          
-            flip=cv2.flip(img,1)    
-            img_set.append(img)
-            img_set.append(flip)
-            Y_train.append(file)
-            Y_train.append(file)
-
-X_train = np.array(img_set)
-n_sample = len(X_train) 
-X_train = X_train.reshape((n_sample,-1))    
-Y_train = np.array(Y_train) 
-Y_train = Y_train.reshape((n_sample,))    
-print("X_train shape = " , X_train.shape)  
-print("Y_train shape = " , Y_train.shape)          
-
+Save_Model = False
+Load_Model = False
+img_set    = []
+labels     = []
+flat_image = []
+height, width  = 70,70
+   
 path = 'Gesture_Images/'
 files = os.listdir(path)
-files.remove('image_dataSet')
-img_set = []
 
 for file in files:
     c_path = path+file
     temp = os.listdir(c_path)
     
     for f in temp:
-        if( f.endswith('.jpg') or f.endswith('.bmp')  ):
+        if( f.endswith('.jpg') or f.endswith('.bmp') ):
             img = cv2.imread(join(c_path,f))
             img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
             img = cv2.resize(img, (height,width), cv2.INTER_LINEAR)          
             flip=cv2.flip(img,1)   
             img_set.append(img)
             img_set.append(flip)
-            Y_test.append(file)
-            Y_test.append(file)
+            labels.append(file)
+            labels.append(file)
 
 #plt.imshow(img_set[1])
 
-X_test = np.array(img_set)
-n_sample = len(X_test) 
-X_test = X_test.reshape((n_sample,-1)) 
-Y_test = np.array(Y_test) 
-Y_test = Y_test.reshape((n_sample,)) 
-print("X_test shape = " , X_test.shape)  
-print("Y_test shape = " , Y_test.shape)      
-print("******************************************************************")
+flat_image = np.array(img_set)
+n_sample = len(flat_image) 
+flat_image = flat_image.reshape((n_sample,-1)) 
+labels = np.array(labels) 
+labels = labels.reshape((n_sample,)) 
+
+X_train, X_test, Y_train, Y_test = train_test_split(flat_image, labels, test_size=0.1, random_state=42)
+print("X_test shape  = " , X_test.shape)  
+print("Y_test shape  = " , Y_test.shape) 
+print("X_train shape = " , X_train.shape)  
+print("Y_train shape = " , Y_train.shape)      
 
 scaler = StandardScaler()
 scaler.fit(X_train) 
@@ -91,7 +62,7 @@ X_test  = scaler.transform(X_test)
 #params = {'alpha': alpha_range}
 #mlp = MLPClassifier(activation='relu', solver='sgd', learning_rate_init = 0.03, max_iter=500, 
 #                        hidden_layer_sizes=(320,) , random_state=1, verbose= True, learning_rate = 'adaptive', tol=1e-4)
-
+#
 #clf = GridSearchCV(mlp, params, verbose=10, n_jobs=1, cv=5)
 #clf.fit(X_train, Y_train)
 #print("the best params are %s with a ascore of %0.2f" %(clf.best_params_, clf.best_score_))
@@ -109,12 +80,20 @@ X_test  = scaler.transform(X_test)
 
 #MULTI-LAYER PERCEPTRON CLASSIFIER
 mlp = MLPClassifier(activation='relu', solver='sgd', learning_rate_init = 0.03, alpha=0.008, max_iter=500, 
-                        hidden_layer_sizes=(320,) , random_state=1, verbose= True, learning_rate = 'adaptive', tol=1e-4)
+                        hidden_layer_sizes=(330,) , random_state=1, verbose= True, learning_rate = 'adaptive', tol=1e-5)
+
 start = time.time()
 mlp.fit(X_train, Y_train)
 delay = time.time() - start
 print("MLP training time: %s" %delay)
 
+if(Save_Model):
+    filename = 'finalized_model.sav'
+    pickle.dump(mlp, open(filename, 'wb'))
+if(Load_Model):
+    filename = 'finalized_model.sav'
+    loaded_model = pickle.load(open(filename, 'rb'))
+    
 #Test the classifiers
 #---------------------------------------------------------------------------------
 #start = time.time()
@@ -169,6 +148,6 @@ def plot_confusion_matrix(cm, classes,normalize=False,title='Confusion matrix',c
        
 cnf_matrix = confusion_matrix(Y_test, MLPpredicted)
 np.set_printoptions(precision=2)
-plot_confusion_matrix(cnf_matrix, classes=('0','1','2'),title='Confusion matrix, without normalization')    
+plot_confusion_matrix(cnf_matrix, classes=('0','1','2'),title='Confusion matrix, without normalization', normalize=True)    
     
     
