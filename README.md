@@ -6,6 +6,7 @@ hand gestures, captured from a camera mounted on the drone.
 
 ```
 python 3
-scikit-learn
-opencv 3
+scikit-learn --> machine learning
+opencv 3     --> image processing and manipulation
+pickle       --> saving and loading the model
 ```

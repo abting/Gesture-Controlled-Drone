@@ -14,8 +14,6 @@ import os
 import cv2
 import pickle
 
-Save_Model = False
-Load_Model = False
 img_set    = []
 labels     = []
 flat_image = []
@@ -79,20 +77,24 @@ X_test  = scaler.transform(X_test)
 #print("SVM training time: %s" %delay)
 
 #MULTI-LAYER PERCEPTRON CLASSIFIER
-mlp = MLPClassifier(activation='relu', solver='sgd', learning_rate_init = 0.03, alpha=0.008, max_iter=500, 
-                        hidden_layer_sizes=(330,) , random_state=1, verbose= True, learning_rate = 'adaptive', tol=1e-5)
+Train = False
+if(Train):   #(270,270,270) --> 90%
+    mlp = MLPClassifier(activation='relu', solver='sgd', learning_rate_init = 0.03, alpha=0.008, max_iter=500, 
+                            hidden_layer_sizes=(271,271,271) , random_state=1, verbose = True, learning_rate = 'adaptive', tol=1e-4)
+    
+    start = time.time()
+    mlp.fit(X_train, Y_train)
+    delay_training = time.time() - start
+    print("***************************************")
+    print("MLP training time: %s" %delay_training)
 
-start = time.time()
-mlp.fit(X_train, Y_train)
-delay = time.time() - start
-print("MLP training time: %s" %delay)
-
+Save_Model = False
+Load_Model = True
+filename = 'finalized_model_4_gesture.sav'
 if(Save_Model):
-    filename = 'finalized_model.sav'
     pickle.dump(mlp, open(filename, 'wb'))
 if(Load_Model):
-    filename = 'finalized_model.sav'
-    loaded_model = pickle.load(open(filename, 'rb'))
+    mlp = pickle.load(open(filename, 'rb'))
     
 #Test the classifiers
 #---------------------------------------------------------------------------------
@@ -103,21 +105,21 @@ if(Load_Model):
 
 start = time.time()
 MLPpredicted  = mlp.predict(X_test)
-delay = time.time() - start
-print("MLP fitting time: %s" %delay)
-print("MLP training Score : %s" % mlp.score(X_train, Y_train))
+delay_fitting = time.time() - start
+print("MLP fitting time: %s" %delay_fitting)
+print("MLP training Score: %s" % mlp.score(X_train, Y_train))
 
 #print("******************************************************************")
 #print("SVM Predicted shape = " , SVMpredicted.shape) 
 #print("SVM Mean Score : %s" % classifier.score(X_test, Y_test))
 #print("SVM training Score : %s" % classifier.score(X_test, Y_test))
+#print("***************************************")
+print("MLP Predicted shape: " , MLPpredicted.shape) 
+print("MLP fitting Score: %s" % mlp.score(X_test, Y_test))
+print("MLP hidden layers shape: %s" %(mlp.hidden_layer_sizes,))
 print("***************************************")
-print("MLP Predicted shape = " , MLPpredicted.shape) 
-print("MLP fitting Score : %s" % mlp.score(X_test, Y_test))
-print(mlp.hidden_layer_sizes)
 
-
-def plot_confusion_matrix(cm, classes,normalize=False,title='Confusion matrix',cmap=plt.cm.Blues):
+def plot_confusion_matrix(cm, classes,normalize=False,title='Confusion matrix',cmap=plt.cm.Greens):
 
     if normalize:
         cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
@@ -148,6 +150,6 @@ def plot_confusion_matrix(cm, classes,normalize=False,title='Confusion matrix',c
        
 cnf_matrix = confusion_matrix(Y_test, MLPpredicted)
 np.set_printoptions(precision=2)
-plot_confusion_matrix(cnf_matrix, classes=('0','1','2'),title='Confusion matrix, without normalization', normalize=True)    
+plot_confusion_matrix(cnf_matrix, classes=('0','1','2'),title='Confusion matrix, without normalization', normalize=False)    
     
     

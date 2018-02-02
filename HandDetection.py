@@ -70,8 +70,8 @@ def detect_faces(f_cascade, colored_img, scaleFactor = 1.1):
  
  if len(faces) != 0:
      #go over list of faces and draw them as rectangles on original colored img
-#     for (x, y, w, h) in faces:
-#          cv2.rectangle(img_copy, (x, y), (x+w, y+h), (0, 255, 0), 2)  
+     for (x, y, w, h) in faces:
+          cv2.rectangle(img_copy, (x-20, y-20), (x+w+20, y+h+20), (0, 0, 0), -1)  
 #          
 #     #detected face
 #     crop_img = img_copy[y+2:y+w, x+2:x+h]
@@ -79,10 +79,9 @@ def detect_faces(f_cascade, colored_img, scaleFactor = 1.1):
 #     #find the forhead
 #     forhead = img_copy[int(y+h/20):int(y+h/5) , x+5:x+int(w/1.5)]
 
-     return faces
+     return img_copy
  else:
-     empty = []
-     return (empty)
+     return colored_img
  
 def backproject(ROI,target, ksize = 1, threshold = 0):
     
@@ -173,7 +172,7 @@ def nothing(x):
     pass
 
 cv2.namedWindow('image', cv2.WINDOW_NORMAL)
-cv2.createTrackbar('min_area'     ,'image',2000  ,150000   ,nothing)
+cv2.createTrackbar('min_area'     ,'image',6800  ,150000   ,nothing)
 cv2.createTrackbar('max_area'     ,'image',150000,150000   ,nothing)
 
 cap = cv2.VideoCapture(0)
@@ -189,16 +188,12 @@ while(cap.isOpened() and 1):
     
     ret, img = cap.read()
     copy     = img.copy()
+    face     = img.copy()
     
-#    face_only = detect_faces(haar_face_cascade,copy)
-#    if(len(face_only) != 0):
-#        set face to black
-#        for (x, y, w, h) in face_only:
-#          cv2.rectangle(copy, (x, y), (x+w, y+h), (0, 0, 0),-1) 
-
+    copy = detect_faces(haar_face_cascade,face)
 
 #    skin_img2 = ApplyToImage(org, clf)
-    
+
     skin_img = h.get_mask(copy)
     
 #    skin_img = cv2.dilate(skin_img,(3,3),iterations = 1)
@@ -235,7 +230,6 @@ while(cap.isOpened() and 1):
 
     cv2.imshow('image' ,img)
     cv2.imshow('res'   ,skin_img)
-    
     k = cv2.waitKey(1)
     if k == ord('q'):
         break
