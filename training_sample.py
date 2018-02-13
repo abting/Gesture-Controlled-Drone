@@ -3,7 +3,7 @@ from sklearn import svm, metrics
 from sklearn.svm import SVC
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, StratifiedShuffleSplit
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, learning_curve, ShuffleSplit
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
@@ -77,10 +77,10 @@ X_test  = scaler.transform(X_test)
 #print("SVM training time: %s" %delay)
 
 #MULTI-LAYER PERCEPTRON CLASSIFIER
-Train = False
-if(Train):   #(270,270,270) --> 90%
-    mlp = MLPClassifier(activation='relu', solver='sgd', learning_rate_init = 0.03, alpha=0.008, max_iter=500, 
-                            hidden_layer_sizes=(271,271,271) , random_state=1, verbose = True, learning_rate = 'adaptive', tol=1e-4)
+Train = True
+if(Train):   #(271,271,271) --> 90%
+    mlp = MLPClassifier(activation='relu', solver='sgd', learning_rate_init = 0.03, alpha=0.008, max_iter=500,
+                            hidden_layer_sizes=(1024,) , random_state=1, verbose = True, learning_rate = 'adaptive', tol=1e-4)
     
     start = time.time()
     mlp.fit(X_train, Y_train)
@@ -89,12 +89,13 @@ if(Train):   #(270,270,270) --> 90%
     print("MLP training time: %s" %delay_training)
 
 Save_Model = False
-Load_Model = True
+Load_Model = False
 filename = 'finalized_model_4_gesture.sav'
 if(Save_Model):
     pickle.dump(mlp, open(filename, 'wb'))
 if(Load_Model):
     mlp = pickle.load(open(filename, 'rb'))
+    
     
 #Test the classifiers
 #---------------------------------------------------------------------------------
@@ -150,6 +151,11 @@ def plot_confusion_matrix(cm, classes,normalize=False,title='Confusion matrix',c
        
 cnf_matrix = confusion_matrix(Y_test, MLPpredicted)
 np.set_printoptions(precision=2)
-plot_confusion_matrix(cnf_matrix, classes=('0','1','2'),title='Confusion matrix, without normalization', normalize=False)    
+plot_confusion_matrix(cnf_matrix, classes=('0','1','2','3'),title='Confusion matrix, without normalization', normalize=False)    
     
-    
+
+
+
+
+
+

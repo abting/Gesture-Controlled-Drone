@@ -190,7 +190,7 @@ while(cap.isOpened() and 1):
     copy     = img.copy()
     face     = img.copy()
     
-    copy = detect_faces(haar_face_cascade,face)
+#    copy = detect_faces(haar_face_cascade,face)
 
 #    skin_img2 = ApplyToImage(org, clf)
 
