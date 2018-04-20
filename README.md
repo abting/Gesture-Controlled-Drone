@@ -9,7 +9,7 @@ Example of gesture images, from left to right: gesture 0,1,2,3
 
 The final model achieved an accuracy of ~95%.
 
-<img src="readme_images/cm.png" height="500">
+<img src="readme_images/cm.png" height="350">
 
 ## Model
 
