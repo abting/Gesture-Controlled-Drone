@@ -3,25 +3,22 @@ The purpose of this project was to build a gesture recognition model that is abl
 
 The model was trained on ~4000 gesture images of 10 people from  ~1m to ~3m. 
 
-<img src="readme_images/0.jpg" height="100" >
-<img src="readme_images/1.jpg" height="100" >
-<img src="readme_images/2.jpg" height="100" >
-<img src="readme_images/3.jpg" height="100" >
+Example of gesture images, from left to right: gesture 0,1,2,3
+
+<img src="readme_images/0.JPG" height="100" > <img src="readme_images/1.jpg" height="100" > <img src="readme_images/2.jpg" height="100" > <img src="readme_images/3.jpg" height="100" >
 
 The final model achieved an accuracy of ~95%.
 
-<img src="readme_images/cm.png">
+<img src="readme_images/cm.png" height="500">
 
 ## Model
 
 ~4000 images of 10 users were capture at 640x480p and the hand gesture regions were extracted manually using the "manual_crop_images.py".
-
-To add some variety to the traiing data, these images were also augmented with shear, vertical flip and rotation.
+To add some variety to the training data, these images were also augmented with shear, vertical flip and rotation.
 
 The model with the following architecture was then trained in batches on these images.
 
-<img src="readme_images/architecture.png" >
-
+<img src="readme_images/architecture.png" width="700">
 
 ## Getting Started
 
