@@ -8,9 +8,9 @@ import os
 
 # initialize the list of reference points and boolean indicating
 # whether cropping is being performed or not
-refPt = []
+refPt    = []
 cropping = False
-image = None
+image    = None
 
 def click_and_crop(event, x, y, flags, param):
 	# grab references to the global variables
@@ -32,13 +32,14 @@ def click_and_crop(event, x, y, flags, param):
 		# draw a rectangle around the region of interest
         cv2.rectangle(image, refPt[0], refPt[1], (0, 255, 0), 2)
           
-source = './0/'
-destination = './0_cropped/'
+source = './3/'
+destination = './3_cropped/'
 
 cv2.namedWindow("image")
 cv2.setMouseCallback("image", click_and_crop)
 
 latest_image_name = 0
+images_done = 1
 done = False
 
 for file in os.listdir(source):
@@ -56,25 +57,32 @@ for file in os.listdir(source):
             
             k = cv2.waitKey(50) & 0xFF
             
+            #skip
             if k == ord("x"):
+                print("IMAGES_DONE = %d" % images_done)
+                images_done +=1 
                 break
             
+            #quit
             elif k == 27: #ESC 
                 print('quitting')
                 done = True
                 break
             
+            #reload the image
             elif k == ord("z"):
                 print("image reloaded!")
                 image = clone.copy()
-                
+            
+            #copt the selected region of intrest 
             elif k == ord("c") and len(refPt) == 2:                
                 roi = clone[refPt[0][1]:refPt[1][1], refPt[0][0]:refPt[1][0]]     
-                success = cv2.imwrite(destination + '%d.bmp' %latest_image_name,roi) 
+                success = cv2.imwrite(destination + '%d.bmp' %latest_image_name,roi)
+                
                 
                 if(success == True):
                     print("successful")
-                    print("image  %d cropped!" %latest_image_name)
+                    print("image  %d cropped!" %latest_image_name)                  
                     latest_image_name += 1
                     image = clone.copy()
                 elif success ==False:
