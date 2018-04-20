@@ -1,5 +1,5 @@
-# Hand Gesture Controlled Quadcopter
-The purpose of this project was to build a gesture recognition model that is able classify gesture images from the user within 1m to 3m with a white background.
+# Hand Gesture Classifier
+The purpose of this project was to build a gesture recognition model that is able to classify gesture images from the user within 1m to 3m with a white background. This model was intended to be combined with a handtracking algorithm and output commands to a flight controller in order to control a drone.
 
 The model was trained on ~4000 gesture images of 10 people from  ~1m to ~3m. 
 
